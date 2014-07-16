@@ -4,7 +4,7 @@ const int downLed = 9;
 String inputString = ""; // a string to hold incoming data
 int satelliteElevation = 0; 
 boolean stringComplete = false;
-boolean azimuthComplete = false;
+boolean stringAzimuth = false;
 int sensorValue = 0;
 // Convert the analog reading (which goes from 2 - 962) to an elevation ( 0 -> 180 )
 int currentElevation = 0;
@@ -39,21 +39,28 @@ void loop()
     inputString = ""; // clear the string
     stringComplete = false;
   }
-  if (azimuthComplete)
+  if (stringAzimuth)
   {
-    mySerial.println("Az: " + inputString );
+    mySerial.print("Az: " + inputString);
+    inputString = ""; // clear the string
+    stringAzimuth = false;
   }
   // Read current rotor elevation
   sensorValue = analogRead(A0); 
+  delay(5);
   currentElevation = map(sensorValue, 2, 962, 0, 18000); // Convert to degrees * 100
-  mySerial.println( "El: " + currentElevation ); // print current elevation to LCD screen
+  //  Serial.println(currentElevation);
+  //  delay(5);
+  //  Serial.print("Satellite Elevation:");
+  //  Serial.println(satelliteElevation);
+  //  mySerial.println( "El: " + currentElevation ); // print current elevation to LCD screen
   differenceInElevation = satelliteElevation - currentElevation;
-  if (differenceInElevation < -400) // -4 degrees
+  if (differenceInElevation < -100) // -4 degrees
   {  // send currentElevation down
     digitalWrite(upLed, LOW);
     digitalWrite(downLed, HIGH);
   }
-  else if (differenceInElevation > 400) // 4 degrees
+  else if (differenceInElevation > 100) // 4 degrees
   {  // send currentElevation up
     digitalWrite(downLed, LOW);
     digitalWrite(upLed, HIGH);
@@ -73,76 +80,81 @@ void loop()
  */
 void serialEvent() 
 {
-  int inChar = Serial.read();
-  switch (inChar)
-  {
-  case 'e': // if first character is 'e'
-    while (Serial.available())
-    {
-      if (isDigit(inChar)) 
-      {
-        // convert the incoming byte to a char 
-        // and add it to the string:
-        inputString += (char)inChar; 
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    delay(5);
+    switch (inChar) {
+    case 'e': // if first character is 'e'
+      while (Serial.available()){
+        int inNum = Serial.read();
+        delay(5);
+        if (isDigit(inNum)) {
+          // convert the incoming byte to a char 
+          // and add it to the string:
+          inputString += (char)inNum; 
+        }
+        // if you get a newline, print the string,
+        // then the string's value:
+        if (inNum == '\n') {
+          stringComplete = true;
+        }
       }
-      // if you get a newline, print the string,
-      // then the string's value:
-      if (inChar == '\n') 
-      {
-        stringComplete = true;
+      break;
+    case 'a': // if first character is 'e'
+      while (Serial.available()){
+        int inNum = Serial.read();
+        delay(5);
+        if (isDigit(inNum)) {
+          // convert the incoming byte to a char 
+          // and add it to the string:
+          inputString += (char)inNum; 
+        }
+        // if you get a newline, print the string,
+        // then the string's value:
+        if (inNum == '\n') {
+          stringAzimuth = true;
+        }
       }
-    }
-    break;
-  case 'a': // if first character is 'a'
-    while (Serial.available())
-    {
-      if (isDigit(inChar)) 
-      {
-        // convert the incoming byte to a char 
-        // and add it to the string:
-        inputString += (char)inChar; 
+      break;
+    case 'r': // if first character is 'r', do below code only and return to loop
+      Serial.println(currentElevation); // sends Matlab current elevation
+      delay(5);
+      Serial.read(); // reads '\n'
+      break;
+    case 'u':
+      digitalWrite(downLed, LOW);
+      digitalWrite(upLed, HIGH);
+      while (Serial.available()){	
+        Serial.read(); // reads '\n'
+        delay(5);
       }
-      // if you get a newline, print the string,
-      // then the string's value:
-      if (inChar == '\n') 
-      {
-        azimuthComplete = true;
+      break;
+    case 'd':
+      digitalWrite(upLed, LOW);
+      digitalWrite(downLed, HIGH);
+      while (Serial.available()){	
+        Serial.read(); // reads '\n'
+        delay(5);
       }
+      break;
+    case 's':
+      digitalWrite(downLed, LOW);
+      digitalWrite(upLed, LOW);
+      break;
     }
-    break;
-  case 'r': // if first character is 'r', do below code only and return to loop
-    Serial.println(currentElevation); // sends Matlab current elevation
-    while (Serial.available())
-    {	
-      Serial.read(); // reads '\n'
-    }
-    break;
-	case 'u':
-    digitalWrite(downLed, LOW);
-    digitalWrite(upLed, HIGH);
-    while (Serial.available())
-    {	
-      Serial.read(); // reads '\n'
-    }
-		break;
-		case 'd':
-    digitalWrite(upLed, LOW);
-    digitalWrite(downLed, HIGH);
-    while (Serial.available())
-    {	
-      Serial.read(); // reads '\n'
-    }
-		break;
-		case 's':
-    digitalWrite(downLed, LOW);
-    digitalWrite(upLed, LOW);
-    while (Serial.available())
-    {	
-      Serial.read(); // reads '\n'
-    }
-		break;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
