@@ -117,6 +117,30 @@ void serialEvent()
       Serial.read(); // reads '\n'
     }
     break;
+	case 'u':
+    digitalWrite(downLed, LOW);
+    digitalWrite(upLed, HIGH);
+    while (Serial.available())
+    {	
+      Serial.read(); // reads '\n'
+    }
+		break;
+		case 'd':
+    digitalWrite(upLed, LOW);
+    digitalWrite(downLed, HIGH);
+    while (Serial.available())
+    {	
+      Serial.read(); // reads '\n'
+    }
+		break;
+		case 's':
+    digitalWrite(downLed, LOW);
+    digitalWrite(upLed, LOW);
+    while (Serial.available())
+    {	
+      Serial.read(); // reads '\n'
+    }
+		break;
   }
 }
 
